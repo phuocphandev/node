@@ -6,10 +6,17 @@ import { MovieModule } from './movie/movie.module';
 import { TicketModule } from './ticket/ticket.module';
 import { TheaterModule } from './theater/theater.module';
 import { ConfigModule } from '@nestjs/config';
+import { PrismaService } from './prisma.service';
 
 @Module({
-  imports: [UserModule, MovieModule, TicketModule, TheaterModule,ConfigModule.forRoot({isGlobal:true})],
+  imports: [
+    UserModule,
+    MovieModule,
+    TicketModule,
+    TheaterModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PrismaService],
 })
 export class AppModule {}
