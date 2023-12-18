@@ -1,26 +1,79 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class MovieService {
-  create(createMovieDto: CreateMovieDto) {
-    return 'This action adds a new movie';
+  constructor(private prisma: PrismaService) {}
+  async getBanner() {
+    let data = await this.prisma.banner.findMany();
+    return data;
   }
 
-  findAll() {
-    return `This action returns all movie`;
+  async getMovieList(keyword: string) {
+    let data = await this.prisma.movie.findMany({
+      where: { movie_name: { contains: keyword } },
+    });
+    return data;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} movie`;
+  async getMovieListPage(props){
+    let { keyword, page, quantity } = props;
+    let count = await this.prisma.users.count({
+      where: {
+        user_name: {
+          contains: keyword,
+        },
+      },
+    });
+    let totalPage = Math.ceil(count / Number(quantity));
+    let index = (Number(page) - 1) * Number(quantity);
+    let data = await this.prisma.movie.findMany({
+      where: {
+        movie_name: {
+          contains: keyword,
+        },
+      },
+      skip: index,
+      take: Number(quantity),
+    });
+    return {
+      currentPage: Number(page),
+      quantity: Number(quantity),
+      totalPages: totalPage,
+      totalCount: count,
+      items: data,
+    };
   }
 
-  update(id: number, updateMovieDto: UpdateMovieDto) {
-    return `This action updates a #${id} movie`;
+  async getMovieListPageByDay(props){
+    let {keyword,page,quantity,startDay,endDate} = props;
+    let count = await this.prisma.users.count({
+      where: {
+        user_name: {
+          contains: keyword,
+        },
+      },
+    });
+    let totalPage = Math.ceil(count / Number(quantity));
+    let index = (Number(page) - 1) * Number(quantity);
+    let data = await this.prisma.movie.findMany({
+      where: {
+        movie_name: {
+          contains: keyword,
+        },
+      },
+      skip: index,
+      take: Number(quantity),
+    });
+    return {
+      currentPage: Number(page),
+      quantity: Number(quantity),
+      totalPages: totalPage,
+      totalCount: count,
+      items: data,
+    };
+  }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} movie`;
-  }
-}

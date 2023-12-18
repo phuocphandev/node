@@ -7,6 +7,8 @@ import { TicketModule } from './ticket/ticket.module';
 import { TheaterModule } from './theater/theater.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma.service';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
   imports: [
@@ -15,8 +17,9 @@ import { PrismaService } from './prisma.service';
     TicketModule,
     TheaterModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    JwtModule.register({ secret: 'MOVIE' }),
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, JwtStrategy],
 })
 export class AppModule {}
