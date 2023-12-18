@@ -39,13 +39,11 @@ getMovieList(@Query('keyword') keyword:string){
 @HttpCode(200)
 @ApiQuery({
   name:'keyword',
-  required:false
+  required:false, 
 })
 @Post('/get-movie-list-page-by-day')
   getUserListPageByDay(@Query('keyword') keyword:string, @Query('page') page:string, @Query('quantity') quantity:string, @Query('start') startDay: string, @Query('end') endDate:string){
     let props={keyword,page,quantity,startDay,endDate}
     return this.movieService.getMovieListPageByDay(props);
   }
-
-  
 }

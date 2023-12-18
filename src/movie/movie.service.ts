@@ -2,6 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { PrismaService } from 'src/prisma.service';
+import * as moment from 'moment';
+
+function utcTime(arg:string){
+  let inputDay = moment.utc(arg,"YYYY-MM-DD")
+  return inputDay.toISOString();
+}
 
 @Injectable()
 export class MovieService {
@@ -18,11 +24,11 @@ export class MovieService {
     return data;
   }
 
-  async getMovieListPage(props){
+  async getMovieListPage(props) {
     let { keyword, page, quantity } = props;
-    let count = await this.prisma.users.count({
+    let count = await this.prisma.movie.count({
       where: {
-        user_name: {
+        movie_name: {
           contains: keyword,
         },
       },
@@ -47,21 +53,34 @@ export class MovieService {
     };
   }
 
-  async getMovieListPageByDay(props){
-    let {keyword,page,quantity,startDay,endDate} = props;
-    let count = await this.prisma.users.count({
+  async getMovieListPageByDay(props) {
+    let { keyword, page, quantity, startDay, endDate } = props;
+    let count = await this.prisma.movie.count({
       where: {
-        user_name: {
+        movie_name: {
           contains: keyword,
+        },
+        release_date: {
+          gte: utcTime(startDay),
+          lte: utcTime(endDate),
         },
       },
     });
+    // var parts = startDay.split('/');
+    // var year = parseInt(parts[0], 10);
+    // var month = parseInt(parts[1], 10) - 1; // months are 0-indexed in JavaScript
+    // var day = parseInt(parts[2], 10);
+    // let inputDay =  new Date(Date.UTC(year, month, day));
     let totalPage = Math.ceil(count / Number(quantity));
     let index = (Number(page) - 1) * Number(quantity);
     let data = await this.prisma.movie.findMany({
       where: {
         movie_name: {
           contains: keyword,
+        },
+        release_date: {
+          gte: utcTime(startDay),
+          lte: utcTime(endDate),
         },
       },
       skip: index,
@@ -75,5 +94,4 @@ export class MovieService {
       items: data,
     };
   }
-  }
-
+}
