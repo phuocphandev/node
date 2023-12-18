@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import * as moment from 'moment';
+import * as fs from 'fs'
 
-function utcTime(arg:string){
-  let inputDay = moment.utc(arg,"YYYY-MM-DD")
+function utcTime(arg: string) {
+  let inputDay = moment.utc(arg, 'YYYY-MM-DD');
   return inputDay.toISOString();
 }
 
@@ -93,5 +96,83 @@ export class MovieService {
       totalCount: count,
       items: data,
     };
+  }
+
+  async addMovieThumbnail({ file, body }) {
+    let {
+      movie_name,
+      trailer,
+      description,
+      release_date,
+      rate,
+      hot,
+      showing,
+      upcoming,
+    } = body;
+    let data = {
+      ...body,
+      thumbnail: file.filename,
+      release_date: utcTime(release_date),
+      rate: Number(rate),
+      showing: showing == 'true' ? true : false,
+      hot: hot == 'true' ? true : false,
+      upcoming: upcoming == 'true' ? true : false,
+    };
+    await this.prisma.movie.create({ data });
+    return 'Movie was created successfully!';
+  }
+
+  async updateMovieThumbnail({ file, body, moviename }) {
+    let {
+      movie_name,
+      trailer,
+      description,
+      release_date,
+      rate,
+      hot,
+      showing,
+      upcoming,
+    } = body;
+    let movie = await this.prisma.movie.findMany({
+      where: { movie_name: { contains: moviename } },
+    });
+    if (movie.length > 1) {
+      throw new BadRequestException("Please input movie's name completely!");
+    } else if (movie.length == 0) {
+      fs.unlink(process.cwd()+"/public/imgs/"+file.filename,()=>{})
+      throw new BadRequestException('There are no movie names like that!');
+    } else {
+      let data = {
+        ...body,
+        thumbnail: file.filename,
+        release_date: utcTime(release_date),
+        rate: Number(rate),
+        showing: showing == 'true' ? true : false,
+        hot: hot == 'true' ? true : false,
+        upcoming: upcoming == 'true' ? true : false,
+      };
+      await this.prisma.movie.update({
+        data: data,
+        where: { movie_id: movie[0].movie_id },
+      });
+      return 'Movie was update successfully!';
+    }
+  }
+
+  async deleteMovie({ id, tokenDecode }) {
+    let { user_type } = tokenDecode;
+    if (user_type == 'user') {
+      throw new UnauthorizedException("You don't have valid role!");
+    } else {
+      await this.prisma.movie.delete({ where: { movie_id: Number(id) } });
+      return 'Movie was deleted!';
+    }
+  }
+
+  async getMovieInfo(id: string) {
+    let data = await this.prisma.movie.findUnique({
+      where: { movie_id: Number(id) },
+    });
+    return data;
   }
 }

@@ -1,1 +1,6 @@
-export class Movie {}
+import { ApiProperty } from "@nestjs/swagger";
+
+export class UploadMovie {
+
+}
+ 

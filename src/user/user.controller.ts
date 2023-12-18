@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -120,18 +120,10 @@ export class UserController {
     @ApiSecurity('token')
     @UseGuards(AuthGuard('jwt'))
     @HttpCode(200)
-    @Post('/delete-user')
+    @Delete('/delete-user')
     deleteUser(@Req() req:Request, @Query("email") email:string){
       let tokenDecode = req.user;
       return this.userService.deleteUser({email,tokenDecode});
-    }
-
-
-    
-  
-
-
-
-    
+    }  
   }
 
