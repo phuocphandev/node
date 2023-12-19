@@ -56,4 +56,21 @@ export class TheaterService {
     }
     return data;
   }
+
+  async getScheduleByMovie(id: string) {
+    let data = undefined;
+    if (id) {
+      data = await this.prisma.movie.findMany({
+        where: { movie_id: Number(id) },
+        include: {
+          schedule: true,
+        },
+      });
+    } else {
+      data = await this.prisma.movie.findMany({
+        include: { schedule: true },
+      });
+    }
+    return data;
+  }
 }

@@ -38,5 +38,14 @@ export class TheaterController {
     return this.theaterService.getScheduleBySystem(id);
   }
 
+  @HttpCode(200)
+  @ApiQuery({
+    name:'movie-id',
+    required:false
+  })
+  @Post('/get-schedule-by-movie')
+  getScheduleByMovie(@Query('movie-id') id:string){
+    return this.theaterService.getScheduleByMovie(id);
+  }
 
 }
