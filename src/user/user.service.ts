@@ -165,7 +165,7 @@ export class UserService {
       select: { schedule_id: true, chair_id: true },
       distinct: ['schedule_id'],
     });
-   
+
     let ticket = await Promise.all(
       dataSchedule.map(async (item) => {
         let scheduleInfo = await this.prisma.schedule.findUnique({
@@ -191,8 +191,13 @@ export class UserService {
         let { schedule_time, movie, theater } = scheduleInfo;
         let { movie_name, thumbnail, description } = movie;
         let { theater_group, theater_name } = theater;
-        const chairIds = dataSchedule.map((item) => item.chair_id);
-        
+
+        let dataTicket = await this.prisma.ticket.findMany({
+          where: { user_id, schedule_id: item.schedule_id },
+          select: { chair_id: true },
+          distinct: ['chair_id'],
+        });
+        const chairIds = dataTicket.map((item) => item.chair_id);
         const chairs = await this.prisma.chair.findMany({
           where: { chair_id: { in: chairIds } },
         });
@@ -200,7 +205,7 @@ export class UserService {
           schedule_time,
           movie_name,
           thumbnail,
-          theater:theater_name,
+          theater: theater_name,
           theater_group: theater_group.theater_name,
           theater_system: theater_group.theater_system.name,
           chairs,
