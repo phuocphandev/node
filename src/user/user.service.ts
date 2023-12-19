@@ -158,15 +158,56 @@ export class UserService {
 
   async getUserInfo(tokenDecode) {
     let { user_id } = tokenDecode;
-    let data = await this.prisma.users.findMany({
+    let dataInfo = await this.prisma.users.findUnique({ where: { user_id } });
+
+    let dataSchedule = await this.prisma.ticket.findMany({
       where: { user_id },
-      include: {
-        ticket: {
-          select: { ticket_id: true, schedule_id: true, chair_id: true },
-        },
-      },
+      select: { schedule_id: true, chair_id: true },
+      distinct: ['schedule_id'],
     });
-    return data;
+   
+    let ticket = await Promise.all(
+      dataSchedule.map(async (item) => {
+        let scheduleInfo = await this.prisma.schedule.findUnique({
+          where: { schedule_id: item.schedule_id },
+          select: {
+            schedule_time: true,
+            movie: {
+              select: { movie_name: true, thumbnail: true, description: true },
+            },
+            theater: {
+              select: {
+                theater_name: true,
+                theater_group: {
+                  select: {
+                    theater_name: true,
+                    theater_system: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+        });
+        let { schedule_time, movie, theater } = scheduleInfo;
+        let { movie_name, thumbnail, description } = movie;
+        let { theater_group, theater_name } = theater;
+        const chairIds = dataSchedule.map((item) => item.chair_id);
+        
+        const chairs = await this.prisma.chair.findMany({
+          where: { chair_id: { in: chairIds } },
+        });
+        return {
+          schedule_time,
+          movie_name,
+          thumbnail,
+          theater:theater_name,
+          theater_group: theater_group.theater_name,
+          theater_system: theater_group.theater_system.name,
+          chairs,
+        };
+      }),
+    );
+    return { dataInfo, ticket };
   }
 
   async getUserInfoForAdmin({ tokenDecode, keyword }) {
