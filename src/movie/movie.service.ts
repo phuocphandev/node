@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma.service';
 import * as moment from 'moment';
 import * as fs from 'fs'
 
-function utcTime(arg: string) {
+export function utcTime(arg: string) {
   let inputDay = moment.utc(arg, 'YYYY-MM-DD');
   return inputDay.toISOString();
 }

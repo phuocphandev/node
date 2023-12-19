@@ -160,7 +160,11 @@ export class UserService {
     let { user_id } = tokenDecode;
     let data = await this.prisma.users.findMany({
       where: { user_id },
-      include: { ticket: true },
+      include: {
+        ticket: {
+          select: { ticket_id: true, schedule_id: true, chair_id: true },
+        },
+      },
     });
     return data;
   }
